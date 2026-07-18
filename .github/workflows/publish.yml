@@ -10,6 +10,10 @@ on:
       - '.github/workflows/publish.yml'
   workflow_dispatch:
 
+env:
+  # Force all actions to run on Node 24 runtime to silence deprecation warnings
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
