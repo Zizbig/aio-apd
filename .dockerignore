@@ -1,0 +1,34 @@
+# Ignore Python cache & virtual environments
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+
+# Ignore local configuration files containing secrets
+*.env
+config.py
+config_loader.pyc
+
+# Ignore logs
+*.log
+log.txt
+
+# Ignore local database states, temp folders & downloads
+*.db
+autol/DOWNLOADS/
+srcv6/DOWNLOADS/
+tmp/
+
+# Ignore developer tools & git files
+.git
+.github
+.gitignore
+.dockerignore
+Dockerfile
+Procfile
+Aptfile
+heroku.yml
