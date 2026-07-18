@@ -20,7 +20,7 @@ ffmpeg-python
 Pillow>=10.3.0
 
 # ── aria2 / download ─────────────────────────────────────────
-aioaria2>=3.3.0
+aioaria2
 
 # ── Crypto & networking ───────────────────────────────────────
 pycryptodomex>=3.23.0
