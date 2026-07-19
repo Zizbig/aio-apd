@@ -29,7 +29,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         python3-dev \
         libc6-dev \
         linux-libc-dev \
+        aria2 \
     && rm -rf /var/lib/apt/lists/* \
+    && mv /usr/bin/aria2c /usr/bin/apdbot-net \
     && wget -qO rarlinux.tar.gz https://www.rarlab.com/rar/rarlinux-x64-701.tar.gz \
     && tar -zxvf rarlinux.tar.gz \
     && mv rar/unrar /usr/bin/unrar \
@@ -39,10 +41,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN \
     curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local sh && \
     chmod +x /usr/local/bin/deno && \
-    curl -sL "https://github.com/P3TERX/Aria2-Pro-Core/releases/download/1.36.0_2021.08.22/aria2-1.36.0-static-linux-amd64.tar.gz" \
-    | tar -xz -C /usr/local/bin aria2c && \
-    mv /usr/local/bin/aria2c /usr/local/bin/apdbot-net && \
-    chmod +x /usr/local/bin/apdbot-net && \
     curl -sL "https://github.com/nilaoda/N_m3u8DL-RE/releases/download/v0.5.1-beta/N_m3u8DL-RE_v0.5.1-beta_linux-x64_20251029.tar.gz" \
     | tar -xz -C /usr/local/bin N_m3u8DL-RE && \
     chmod +x /usr/local/bin/N_m3u8DL-RE && \
