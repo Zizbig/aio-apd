@@ -5,7 +5,7 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    PORT=8080 \
+    PORT=7860 \
     TZ=Asia/Kolkata
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -41,7 +41,8 @@ RUN \
     chmod +x /usr/local/bin/deno && \
     curl -sL "https://github.com/P3TERX/Aria2-Pro-Core/releases/download/1.36.0_2021.08.22/aria2-1.36.0-static-linux-amd64.tar.gz" \
     | tar -xz -C /usr/local/bin aria2c && \
-    chmod +x /usr/local/bin/aria2c && \
+    mv /usr/local/bin/aria2c /usr/local/bin/apdbot-net && \
+    chmod +x /usr/local/bin/apdbot-net && \
     curl -sL "https://github.com/nilaoda/N_m3u8DL-RE/releases/download/v0.5.1-beta/N_m3u8DL-RE_v0.5.1-beta_linux-x64_20251029.tar.gz" \
     | tar -xz -C /usr/local/bin N_m3u8DL-RE && \
     chmod +x /usr/local/bin/N_m3u8DL-RE && \
