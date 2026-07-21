@@ -37,3 +37,4 @@ tenacity>=8.0.0
 speedtest-cli
 natsort
 telegraph
+feedparser
