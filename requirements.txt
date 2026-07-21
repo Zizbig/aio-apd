@@ -1,40 +1,17 @@
-# ── Combined requirements for backend + srcv6 + autol ────────
-# ── Telegram & Bot framework ──────────────────────────────────
-pyrofork==2.3.68
+# --- Telegram & Bot Frameworks ---
+pyrofork>=2.3.69
+TgCrypto
 TgCrypto-pyrofork
 
-# ── Web & async ───────────────────────────────────────────────
+# --- Asynchronous & Networking ---
 aiohttp==3.9.5
-aiofiles
 uvloop
+
+# --- Database & Utilities ---
+motor
+hachoir
+
+# --- Backend ---
 python-dotenv
 jinja2
-
-# ── Database ──────────────────────────────────────────────────
-motor>=3.3.0
-
-# ── Media / metadata ─────────────────────────────────────────
-hachoir>=3.2.0
-mutagen>=1.47.0
-ffmpeg-python
-Pillow>=10.3.0
-
-# ── aria2 / download ─────────────────────────────────────────
-aria2p
-
-# ── Crypto & networking ───────────────────────────────────────
-pycryptodomex>=3.23.0
-brotli>=1.2.0
-certifi>=2025.10.05
-websockets>=15.0.1
-requests>=2.32.5
-urllib3>=2.5.0
-curl_cffi==0.14.0
-
-# ── System / utilities ────────────────────────────────────────
-psutil>=5.9.8
-tenacity>=8.0.0
-speedtest-cli
-natsort
-telegraph
-feedparser
+aiofiles
