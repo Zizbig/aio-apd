@@ -23,3 +23,6 @@ pydantic-settings>=2.12.0
 python-dotenv>=1.2.1
 jinja2
 aiofiles
+beautifulsoup4>=4.12.0
+seleniumbase>=4.20.0
+

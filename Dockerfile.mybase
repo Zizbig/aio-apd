@@ -1,6 +1,6 @@
 FROM python:3.11-slim
 
- PYTHONUNBUFFERED=1 \
+ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
@@ -17,6 +17,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tar \
     wget \
     gcc \
+    git \
+    chromium \
+    xvfb \
     python3-dev \
     && wget -O /usr/local/bin/wgcf https://github.com/ViRb3/wgcf/releases/download/v2.2.22/wgcf_2.2.22_linux_amd64 \
     && chmod +x /usr/local/bin/wgcf \
