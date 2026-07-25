@@ -46,7 +46,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./Dockerfile.base
+          file: ./Dockerfile.mybase
           push: true
           tags: |
             ghcr.io/${{ env.REPO_NAME }}-base:${{ github.ref_name }}
