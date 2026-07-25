@@ -1,75 +1,65 @@
-FROM python:3.11-slim
+FROM python:3.12-slim
 
-ENV PYTHONUNBUFFERED=1
+# ── Environment ──────────────────────────────────────────────
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PORT=7860 \
+    TZ=Asia/Kolkata
 
-# Install system dependencies
+ENV DEBIAN_FRONTEND=noninteractive
+
+# ── System & Build dependencies ───────────────────────────────
+#  Note: Added gcc, g++, python3-dev, libc6-dev, and linux-libc-dev
+#  so python libraries that require C-compilation (like TgCrypto,
+#  uvloop, and curl_cffi) can build successfully during pip install.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ffmpeg \
-    unzip \
-    unrar-free \
-    tar \
-    wget \
-    gcc \
-    git \
-    build-essential \
-    cargo \
-    rustc \
-    python3-dev \
-    && wget -O /usr/local/bin/wgcf https://github.com/ViRb3/wgcf/releases/download/v2.2.22/wgcf_2.2.22_linux_amd64 \
-    && chmod +x /usr/local/bin/wgcf \
-    && wget -O /tmp/wireproxy.tar.gz https://github.com/octeep/wireproxy/releases/download/v1.0.7/wireproxy_linux_amd64.tar.gz \
-    && tar -xzf /tmp/wireproxy.tar.gz -C /usr/local/bin/ wireproxy \
-    && chmod +x /usr/local/bin/wireproxy \
-    && rm /tmp/wireproxy.tar.gz \
-    && rm -rf /var/lib/apt/lists/*
+        ffmpeg \
+        unzip \
+        curl \
+        wget \
+        tini \
+        megatools \
+        nodejs \
+        busybox \
+        procps \
+        gcc \
+        g++ \
+        python3-dev \
+        libc6-dev \
+        linux-libc-dev \
+    && rm -rf /var/lib/apt/lists/* \
+    && wget -qO rarlinux.tar.gz https://www.rarlab.com/rar/rarlinux-x64-701.tar.gz \
+    && tar -zxvf rarlinux.tar.gz \
+    && mv rar/unrar /usr/bin/unrar \
+    && rm -rf rar rarlinux.tar.gz
 
-# Change working directory to /app
+# ── Static binaries required by autol ────────────────────────
+RUN \
+    curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local sh && \
+    chmod +x /usr/local/bin/deno && \
+    curl -sL "https://github.com/P3TERX/Aria2-Pro-Core/releases/download/1.36.0_2021.08.22/aria2-1.36.0-static-linux-amd64.tar.gz" \
+    | tar -xz -C /usr/local/bin aria2c && \
+    mv /usr/local/bin/aria2c /usr/local/bin/apdbot-net && \
+    chmod +x /usr/local/bin/apdbot-net && \
+    curl -sL "https://github.com/nilaoda/N_m3u8DL-RE/releases/download/v0.5.1-beta/N_m3u8DL-RE_v0.5.1-beta_linux-x64_20251029.tar.gz" \
+    | tar -xz -C /usr/local/bin N_m3u8DL-RE && \
+    chmod +x /usr/local/bin/N_m3u8DL-RE && \
+    curl -sL "https://github.com/ViRb3/wgcf/releases/download/v2.2.22/wgcf_2.2.22_linux_amd64" -o /usr/local/bin/wgcf && \
+    chmod +x /usr/local/bin/wgcf && \
+    curl -sL "https://github.com/octeep/wireproxy/releases/download/v1.0.7/wireproxy_linux_amd64.tar.gz" \
+    | tar -xz -C /usr/local/bin wireproxy && \
+    chmod +x /usr/local/bin/wireproxy
+
+# ── Python dependencies ───────────────────────────────────────
+COPY requirements.txt ./requirements.txt
+RUN pip install --upgrade pip --root-user-action=ignore && \
+    pip install -r requirements.txt --root-user-action=ignore
+
+# ── yt-dlp (always fresh) ─────────────────────────────────────
+ARG YTDLP_VERSION
+RUN pip install --no-cache-dir ${YTDLP_VERSION:+yt-dlp==${YTDLP_VERSION}} ${YTDLP_VERSION:-yt-dlp} \
+    && yt-dlp --version
+
 WORKDIR /app
-
-# Copy all source files
-COPY . /app
-
-# Unzip any zip files if present, flatten nested folders, and verify setup
-RUN printf "%s\n" \
-"import os, glob, zipfile, shutil" \
-"zips = glob.glob('/app/*.zip')" \
-"for z in zips:" \
-"    print(f'📦 Extracting {z}...')" \
-"    with zipfile.ZipFile(z, 'r') as zf: zf.extractall('/app')" \
-"    os.remove(z)" \
-"for entry in os.listdir('/app'):" \
-"    ep = os.path.join('/app', entry)" \
-"    if os.path.isdir(ep) and entry not in ['.git', 'autol', 'srcv6', 'backend']:" \
-"        contents = os.listdir(ep)" \
-"        if any(c in ['autol', 'srcv6', 'backend', 'start.sh'] for c in contents):" \
-"            print(f'📂 Flattening nested folder: {entry}')" \
-"            for c in contents:" \
-"                src, dst = os.path.join(ep, c), os.path.join('/app', c)" \
-"                if os.path.exists(dst):" \
-"                    if os.path.isdir(dst): shutil.rmtree(dst)" \
-"                    else: os.remove(dst)" \
-"                shutil.move(src, dst)" \
-"            shutil.rmtree(ep)" \
-"errors = []" \
-"if not any(os.path.isdir(os.path.join('/app', d)) for d in ['srcv6', 'autol']):" \
-"    errors.append('Neither srcv6 nor autol directory was found. You must deploy at least one bot.')" \
-"if not os.path.isfile('/app/start.sh'):" \
-"    errors.append('start.sh is missing')" \
-"if errors:" \
-"    print('❌ Verification failed:')" \
-"    for e in errors: print(f'  - {e}')" \
-"    exit(1)" \
-"else:" \
-"    print('✅ Verification successful!')" \
-> /app/verify_setup.py && python3 /app/verify_setup.py && rm /app/verify_setup.py
-
-# Ensure start.sh has execute permissions
-RUN chmod +x start.sh
-
-
-# Install dependencies from compiled requirements.txt
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r /app/requirements.txt
-
-# Run start.sh to launch the services
-CMD ["bash", "start.sh"]
