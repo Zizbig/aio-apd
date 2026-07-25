@@ -18,6 +18,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     gcc \
     git \
+    build-essential \
+    cargo \
+    rustc \
     chromium \
     xvfb \
     python3-dev \

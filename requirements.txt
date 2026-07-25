@@ -1,7 +1,6 @@
 # --- Telegram & Bot Frameworks ---
-pyrofork>=2.3.69
-TgCrypto
-TgCrypto-pyrofork
+wzgram>=3.0.23
+git+https://github.com/rjriajul/WarpCrypto
 
 # --- Asynchronous & Networking ---
 aiohttp>=3.9.5
