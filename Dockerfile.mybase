@@ -1,3 +1,13 @@
+# ==============================================================================
+# BASE DOCKER IMAGE SPECIFICATION (Dockerfile.mybase)
+# ==============================================================================
+# NOTE: This file defines the pre-built BASE Docker image (e.g., ghcr.io/zizbig/aio-apd-base).
+# The main application Dockerfile pulls this base image and handles application code execution.
+# DO NOT add application zip extraction, nested folder flattening, or code unpacking scripts here.
+# Keep this base image focused purely on system tools, network proxies (wgcf, wireproxy),
+# build compilers (cargo, gcc, git), and globally pre-installed Python requirements.
+# ==============================================================================
+
 FROM python:3.11-slim
 
 ENV PYTHONUNBUFFERED=1 \
@@ -9,11 +19,9 @@ ENV PYTHONUNBUFFERED=1 \
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install system dependencies
+# Install system dependencies & network binaries
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
-    unzip \
-    unrar-free \
     tar \
     wget \
     gcc \
@@ -32,7 +40,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm /tmp/wireproxy.tar.gz \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install them globally
+# Copy requirements and install them globally into the base image
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r /tmp/requirements.txt && \
