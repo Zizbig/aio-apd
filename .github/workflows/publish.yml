@@ -5,7 +5,7 @@ on:
     branches:
       - '**'
     paths:
-      - 'Dockerfile.base'
+      - 'Dockerfile.mybase'
       - 'requirements.txt'
       - '.github/workflows/publish.yml'
   workflow_dispatch:
