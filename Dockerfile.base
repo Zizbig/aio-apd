@@ -1,65 +1,44 @@
-FROM python:3.12-slim
+# ==============================================================================
+# BASE DOCKER IMAGE SPECIFICATION (Dockerfile.org)
+# ==============================================================================
+# NOTE: This file defines the pre-built BASE Docker image environment.
+# The main application Dockerfile pulls this base image and handles application code execution.
+# DO NOT add application zip extraction, nested folder flattening, or code unpacking scripts here.
+# Keep this base image focused purely on system tools, network proxies (wgcf, wireproxy),
+# build compilers (cargo, gcc, git), and globally pre-installed Python requirements.
+# ==============================================================================
 
-# ── Environment ──────────────────────────────────────────────
+FROM python:3.11-slim
+
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    PORT=7860 \
     TZ=Asia/Kolkata
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# ── System & Build dependencies ───────────────────────────────
-#  Note: Added gcc, g++, python3-dev, libc6-dev, and linux-libc-dev
-#  so python libraries that require C-compilation (like TgCrypto,
-#  uvloop, and curl_cffi) can build successfully during pip install.
+# Install system dependencies & network binaries
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        ffmpeg \
-        unzip \
-        curl \
-        wget \
-        tini \
-        megatools \
-        nodejs \
-        busybox \
-        procps \
-        gcc \
-        g++ \
-        python3-dev \
-        libc6-dev \
-        linux-libc-dev \
-    && rm -rf /var/lib/apt/lists/* \
-    && wget -qO rarlinux.tar.gz https://www.rarlab.com/rar/rarlinux-x64-701.tar.gz \
-    && tar -zxvf rarlinux.tar.gz \
-    && mv rar/unrar /usr/bin/unrar \
-    && rm -rf rar rarlinux.tar.gz
+    ffmpeg \
+    tar \
+    wget \
+    gcc \
+    git \
+    build-essential \
+    cargo \
+    rustc \
+    python3-dev \
+    && wget -O /usr/local/bin/wgcf https://github.com/ViRb3/wgcf/releases/download/v2.2.22/wgcf_2.2.22_linux_amd64 \
+    && chmod +x /usr/local/bin/wgcf \
+    && wget -O /tmp/wireproxy.tar.gz https://github.com/octeep/wireproxy/releases/download/v1.0.7/wireproxy_linux_amd64.tar.gz \
+    && tar -xzf /tmp/wireproxy.tar.gz -C /usr/local/bin/ wireproxy \
+    && chmod +x /usr/local/bin/wireproxy \
+    && rm /tmp/wireproxy.tar.gz \
+    && rm -rf /var/lib/apt/lists/*
 
-# ── Static binaries required by autol ────────────────────────
-RUN \
-    curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local sh && \
-    chmod +x /usr/local/bin/deno && \
-    curl -sL "https://github.com/P3TERX/Aria2-Pro-Core/releases/download/1.36.0_2021.08.22/aria2-1.36.0-static-linux-amd64.tar.gz" \
-    | tar -xz -C /usr/local/bin aria2c && \
-    mv /usr/local/bin/aria2c /usr/local/bin/apdbot-net && \
-    chmod +x /usr/local/bin/apdbot-net && \
-    curl -sL "https://github.com/nilaoda/N_m3u8DL-RE/releases/download/v0.5.1-beta/N_m3u8DL-RE_v0.5.1-beta_linux-x64_20251029.tar.gz" \
-    | tar -xz -C /usr/local/bin N_m3u8DL-RE && \
-    chmod +x /usr/local/bin/N_m3u8DL-RE && \
-    curl -sL "https://github.com/ViRb3/wgcf/releases/download/v2.2.22/wgcf_2.2.22_linux_amd64" -o /usr/local/bin/wgcf && \
-    chmod +x /usr/local/bin/wgcf && \
-    curl -sL "https://github.com/octeep/wireproxy/releases/download/v1.0.7/wireproxy_linux_amd64.tar.gz" \
-    | tar -xz -C /usr/local/bin wireproxy && \
-    chmod +x /usr/local/bin/wireproxy
-
-# ── Python dependencies ───────────────────────────────────────
-COPY requirements.txt ./requirements.txt
-RUN pip install --upgrade pip --root-user-action=ignore && \
-    pip install -r requirements.txt --root-user-action=ignore
-
-# ── yt-dlp (always fresh) ─────────────────────────────────────
-ARG YTDLP_VERSION
-RUN pip install --no-cache-dir ${YTDLP_VERSION:+yt-dlp==${YTDLP_VERSION}} ${YTDLP_VERSION:-yt-dlp} \
-    && yt-dlp --version
-
-WORKDIR /app
+# Install requirements globally into the base image
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r /tmp/requirements.txt && \
+    rm /tmp/requirements.txt
