@@ -1,44 +1,54 @@
-# ==============================================================================
-# BASE DOCKER IMAGE SPECIFICATION (Dockerfile.org)
-# ==============================================================================
-# NOTE: This file defines the pre-built BASE Docker image environment.
-# The main application Dockerfile pulls this base image and handles application code execution.
-# DO NOT add application zip extraction, nested folder flattening, or code unpacking scripts here.
-# Keep this base image focused purely on system tools, network proxies (wgcf, wireproxy),
-# build compilers (cargo, gcc, git), and globally pre-installed Python requirements.
-# ==============================================================================
+FROM python:3.12-slim-bookworm
 
-FROM python:3.11-slim
-
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    TZ=Asia/Kolkata
+    TZ=Asia/Kolkata \
+    DEBIAN_FRONTEND=noninteractive
 
-ENV DEBIAN_FRONTEND=noninteractive
+WORKDIR /app
 
-# Install system dependencies & network binaries
+# ── 1. System packages & build tools ─────────────────────────────────────────
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ffmpeg \
-    tar \
-    wget \
     gcc \
+    libc6-dev \
+    linux-libc-dev \
     git \
-    build-essential \
-    cargo \
-    rustc \
-    python3-dev \
-    && wget -O /usr/local/bin/wgcf https://github.com/ViRb3/wgcf/releases/download/v2.2.22/wgcf_2.2.22_linux_amd64 \
-    && chmod +x /usr/local/bin/wgcf \
-    && wget -O /tmp/wireproxy.tar.gz https://github.com/octeep/wireproxy/releases/download/v1.0.7/wireproxy_linux_amd64.tar.gz \
-    && tar -xzf /tmp/wireproxy.tar.gz -C /usr/local/bin/ wireproxy \
-    && chmod +x /usr/local/bin/wireproxy \
-    && rm /tmp/wireproxy.tar.gz \
+    aria2 \
+    ffmpeg \
+    curl \
+    busybox \
+    unzip \
+    unrar-free \
+    tar \
+    tini \
+    megatools \
+    procps \
+    nodejs \
     && rm -rf /var/lib/apt/lists/*
 
-# Install requirements globally into the base image
-COPY requirements.txt /tmp/requirements.txt
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r /tmp/requirements.txt && \
-    rm /tmp/requirements.txt
+# ── 2. Static binary downloads ────────────────────────────────────────────────
+RUN \
+    # Deno (used by yt-dlp for JS runtimes)
+    curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local sh && \
+    chmod +x /usr/local/bin/deno && \
+    # N_m3u8DL-RE
+    curl -sL "https://github.com/nilaoda/N_m3u8DL-RE/releases/download/v0.5.1-beta/N_m3u8DL-RE_v0.5.1-beta_linux-x64_20251029.tar.gz" \
+    | tar -xz -C /usr/local/bin N_m3u8DL-RE && \
+    chmod +x /usr/local/bin/N_m3u8DL-RE && \
+    # wgcf (Cloudflare WARP account generator)
+    curl -sL "https://github.com/ViRb3/wgcf/releases/download/v2.2.22/wgcf_2.2.22_linux_amd64" -o /usr/local/bin/wgcf && \
+    chmod +x /usr/local/bin/wgcf && \
+    # wireproxy (WireGuard SOCKS5 proxy)
+    curl -sL "https://github.com/octeep/wireproxy/releases/download/v1.0.7/wireproxy_linux_amd64.tar.gz" \
+    | tar -xz -C /usr/local/bin wireproxy && \
+    chmod +x /usr/local/bin/wireproxy && \
+    # cloudflared (Cloudflare Tunnel)
+    curl -sL "https://github.com/cloudflare/cloudflared/releases/download/2026.7.3/cloudflared-linux-amd64" \
+    -o /usr/local/bin/cloudflared && \
+    chmod +x /usr/local/bin/cloudflared
+
+# ── 3. Pre-install Python requirements ────────────────────────────────────────
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir yt-dlp
