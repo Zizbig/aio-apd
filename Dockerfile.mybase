@@ -23,12 +23,14 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     tar \
+    curl \
     wget \
     gcc \
     git \
     build-essential \
     cargo \
     rustc \
+    aria2 \
     chromium \
     xvfb \
     python3-dev \
@@ -38,6 +40,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && tar -xzf /tmp/wireproxy.tar.gz -C /usr/local/bin/ wireproxy \
     && chmod +x /usr/local/bin/wireproxy \
     && rm /tmp/wireproxy.tar.gz \
+    # N_m3u8DL-RE (HLS/M3U8 downloader)
+    && curl -sL "https://github.com/nilaoda/N_m3u8DL-RE/releases/download/v0.5.1-beta/N_m3u8DL-RE_v0.5.1-beta_linux-x64_20251029.tar.gz" \
+    | tar -xz -C /usr/local/bin N_m3u8DL-RE \
+    && chmod +x /usr/local/bin/N_m3u8DL-RE \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install them globally into the base image
