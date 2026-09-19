@@ -17,6 +17,11 @@ seedrcc>=2.1.2
 structlog>=25.5.0
 pydantic>=2.12.5
 pydantic-settings>=2.12.0
+natsort
+telegraph
+Pillow
+psutil
+speedtest-cli
 
 # --- Backend ---
 python-dotenv>=1.2.1
